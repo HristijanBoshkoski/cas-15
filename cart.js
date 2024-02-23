@@ -1,15 +1,12 @@
 let itemCountSpan = document.getElementById('itemCount');
 let itemCount = 0;
-let cartItems =
-    localStorage.getItem('cartItems') ? JSON.parse(localStorage.getItem('cartItems')) : [];
-if (cartItems.length > 0) {
-    itemCount = cartItems.map(el => el.quantity).reduce((curr, acc) => acc + curr);
-    updateCart();
-}
+let cartItems = 
+localStorage.getItem('cartItems') ? JSON.parse(localStorage.getItem('cartItems')) : [];
+updateCart();
 
 function openCart() {
     modalBody.innerHTML = '';
-    cartItems.forEach(item => {
+    cartItems.forEach(item =>{
         modalBody.innerHTML += `
         <table class="table">
         <thead>
@@ -20,7 +17,7 @@ function openCart() {
           <th>Quantity</th>
         </thead>
         <tbody id="tBody">
-        <tr id="${item.id}">
+        <tr id="row-${item.id}">
           <td>
             <img
           src="${item.img}"
@@ -32,31 +29,28 @@ function openCart() {
           <td id="total${item.id}">${item.totalPrice}</td>
           <td id="cardQ${item.id}">${item.quantity}</td>
           <td>
-            <button class="btn btn-success" onclick="incrementItemQuantity(${item.id})" type="button">+</button>
-            <button class="btn btn-danger" onclick="decrementItemQuantity(${item.id})" type="button">-</button>
+            <button class="btn btn-success" onclick="adjustQuantity(${item.id},1)" type="button">+</button>
+            <button class="btn btn-danger" onclick="adjustQuantity(${item.id},-1)" type="button">-</button>
           </td>
-          <td onclick="removeItemFromCart(${item.id})" id="remove${item.id}">X</td>
+          <td onclick="removeItem(${item.id})" id="remove${item.id}">X</td>
         </tr>
         </tbody>
       </table>
         `;
     })
-
 }
 
 function addToCart(drinkId) {
     const drink = items.find(el => el.id == drinkId);
     const cartDrink = cartItems.find(el => el.id == drinkId);
-    if (cartDrink) {
+    if(cartDrink) {
         cartDrink.quantity++;
         cartDrink.totalPrice = (cartDrink.quantity * cartDrink.price).toFixed(2);
     }
     else {
-        drink.quantity = 1;
-        drink.totalPrice = drink.price;
-        cartItems.push(drink);
+        cartItems.push({ ...drink, quantity: 1, totalPrice: drink.price.toFixed(2) });
     }
-    localStorage.setItem('cartItems', JSON.stringify(cartItems));
+    localStorage.setItem('cartItems',JSON.stringify(cartItems));
     updateCart();
 }
 
@@ -68,32 +62,26 @@ function updateCart() {
     }
 }
 
-function incrementItemQuantity(drinkId) {
+function adjustQuantity(drinkId,change) {
     let itemQuantity = document.getElementById(`cardQ${drinkId}`);
     let itemTotalPrice = document.getElementById(`total${drinkId}`);
-    itemTotalPrice.innerText = ((Number(itemTotalPrice.innerText) / Number(itemQuantity.innerText)) * ++itemQuantity.innerText).toFixed(2);
-    updateCartItem(drinkId, itemQuantity.innerText);
+    let newQuantity = Number(itemQuantity.innerText) + change;
+    itemTotalPrice.innerText = ((Number(itemTotalPrice.innerText) / Number(itemQuantity.innerText)) * newQuantity).toFixed(2);
+    itemQuantity.innerText = newQuantity;
+    updateCartItem(drinkId,itemQuantity.innerText);
 }
 
-function decrementItemQuantity(drinkId) {
-    let itemQuantity = document.getElementById(`cardQ${drinkId}`);
-    let itemTotalPrice = document.getElementById(`total${drinkId}`);
-    if (itemQuantity.innerText == 1) return;
-    itemTotalPrice.innerText = ((Number(itemTotalPrice.innerText) / Number(itemQuantity.innerText)) * --itemQuantity.innerText).toFixed(2);
-    updateCartItem(drinkId, itemQuantity.innerText);
-}
-
-function updateCartItem(drinkId, quantity) {
+function updateCartItem(drinkId,quantity) {
     let drink = cartItems.find(drink => drink.id == drinkId);
     drink.quantity = Number(quantity);
     drink.totalPrice = drink.price * Number(quantity);
-    localStorage.setItem('cartItems', JSON.stringify(cartItems));
+    localStorage.setItem('cartItems',JSON.stringify(cartItems));
     updateCart();
 }
 
-function removeItemFromCart(drinkId) {
+function removeItem(drinkId) {
     cartItems = cartItems.filter(drink => drink.id != drinkId);
-    localStorage.setItem('cartItems', JSON.stringify(cartItems));
+    localStorage.setItem('cartItems',JSON.stringify(cartItems));
     updateCart();
     openCart();
 }
